@@ -649,15 +649,16 @@ body {
     font-size: 14px;
     color: #cbd5e1;
 }
-
 /* Dedicated Chat View Canvas Layer */
 #chat-view { 
     background: #f0f2f5; 
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    max-height: 100%;
-    overflow: hidden;
+    /* --- KEYBOARD RESISTANCE FIX --- */
+    height: 100dvh;        /* Mobile keyboard khulne par height dynamic adjust hogi */
+    max-height: 100dvh;    /* Pure webview area ko full height pe fix rakhega */
+    overflow: hidden;      /* Poore page ko faltu scroll hone se rokega */
+    position: relative;
 }
 
 .chat-view-header-details {
@@ -726,7 +727,9 @@ body {
 
 .conversation-scroll-viewport {
     flex: 1;
-    overflow-y: auto;
+    /* --- MESSAGES SCROLL FIX --- */
+    overflow-y: auto;                  /* Messages overflow hone par hi scrollbar aayega */
+    -webkit-overflow-scrolling: touch; /* Mobile Safari aur Chrome me smooth inertia scroll ke liye */
     padding: 12px;
     display: flex;
     flex-direction: column;
@@ -777,6 +780,9 @@ body {
     gap: 8px;
     border-top: 1px solid var(--border-color);
     box-sizing: border-box;
+    /* --- INPUT LOCK FIX --- */
+    flex-shrink: 0;                     /* Isse keyboard khulne par input bar compress ya dabega nahi */
+    padding-bottom: calc(8px + env(safe-area-inset-bottom)); /* Modern notch/bezel phones me automatic spacing handles ke liye */
 }
 
 .conversation-footer-input-bar input {
@@ -1779,10 +1785,21 @@ body {
             navigateToViewLayer('main-view');
         }
 
+        // --- MOBILE KEYBOARD AUTO-SCROLL IMPLEMENTATION ---
+        // Is listener ko yahan niche add kiya hai taaki input click hote hi chat box smoothly down scroll ho jaye
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chat-message-inline-input');
+            const scrollViewport = document.getElementById('chat-messages-rendering-box');
 
-
-
-
+            if (chatInput && scrollViewport) {
+                chatInput.addEventListener('focus', () => {
+                    // Keyboard open hone ke standard delay (300ms) ke baad niche scroll trigger karega
+                    setTimeout(() => {
+                        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+                    }, 300);
+                });
+            }
+        });
 
 
         // ----------------------------------------------------
